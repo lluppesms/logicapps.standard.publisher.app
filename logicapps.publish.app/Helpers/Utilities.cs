@@ -186,21 +186,6 @@ public class Utilities
     }
 
     /// <summary>
-    /// Validates the device Id format.
-    /// </summary>
-    public static bool ValidateIoTDeviceId(string deviceId)
-    {
-        var r = new Regex("^[a-z0-9-]*$");
-        if (!r.IsMatch(deviceId))
-        {
-            MyLogger.LogError("Invalid deviceId: ID must be alphanumeric, lowercase, and it may contain hyphens.");
-            return false;
-            //throw new FormatException("Invalid deviceId: The ID must be alphanumeric, lowercase, and may contain hyphens");
-        }
-        return true;
-    }
-
-    /// <summary>
     /// Convert DateTimeOffset to DateTime
     /// </summary>
     public static DateTime ConvertFromDateTimeOffset(DateTimeOffset dateTime)
@@ -213,44 +198,44 @@ public class Utilities
             return dateTime.DateTime;
     }
 
-    /// <summary>
-    /// Show Sweet Prompt
-    /// </summary>
-    public static async Task<bool> ShowSweetPrompt(SweetAlertService swal, SweetAlertOptions options)
-    {
-        var confirm = await swal.FireAsync(options).ConfigureAwait(false);
-        return confirm.IsConfirmed;
-    }
+    ///// <summary>
+    ///// Show Sweet Prompt
+    ///// </summary>
+    //public static async Task<bool> ShowSweetPrompt(SweetAlertService swal, SweetAlertOptions options)
+    //{
+    //    var confirm = await swal.FireAsync(options).ConfigureAwait(false);
+    //    return confirm.IsConfirmed;
+    //}
 
-    /// <summary>
-    /// Show Sweet Prompt
-    /// </summary>
-    public static async Task<bool> ShowSweetPrompt(SweetAlertService swal, string title, string html, string confirmButtonTxt, string cancelButtonTxt = "Cancel")
-    {
-        return await ShowSweetPrompt(swal, new SweetAlertOptions
-        {
-            Title = title,
-            Html = html,
-            ShowCancelButton = true,
-            Icon = SweetAlertIcon.Warning,
-            ConfirmButtonText = confirmButtonTxt,
-            CancelButtonText = cancelButtonTxt,
-            FocusCancel = true
-        });
-    }
+    ///// <summary>
+    ///// Show Sweet Prompt
+    ///// </summary>
+    //public static async Task<bool> ShowSweetPrompt(SweetAlertService swal, string title, string html, string confirmButtonTxt, string cancelButtonTxt = "Cancel")
+    //{
+    //    return await ShowSweetPrompt(swal, new SweetAlertOptions
+    //    {
+    //        Title = title,
+    //        Html = html,
+    //        ShowCancelButton = true,
+    //        Icon = SweetAlertIcon.Warning,
+    //        ConfirmButtonText = confirmButtonTxt,
+    //        CancelButtonText = cancelButtonTxt,
+    //        FocusCancel = true
+    //    });
+    //}
 
-    /// <summary>
-    /// Show Popup HTML Message
-    /// </summary>
-    public static async Task ShowSweetPopupHtml(SweetAlertService swal, string title, string html, string confirmButtonTxt = "OK")
-    {
-        await ShowSweetPrompt(swal, new SweetAlertOptions
-        {
-            Title = title,
-            Html = html,
-            ShowCancelButton = false,
-            ConfirmButtonText = confirmButtonTxt
-        });
-    }
+    ///// <summary>
+    ///// Show Popup HTML Message
+    ///// </summary>
+    //public static async Task ShowSweetPopupHtml(SweetAlertService swal, string title, string html, string confirmButtonTxt = "OK")
+    //{
+    //    await ShowSweetPrompt(swal, new SweetAlertOptions
+    //    {
+    //        Title = title,
+    //        Html = html,
+    //        ShowCancelButton = false,
+    //        ConfirmButtonText = confirmButtonTxt
+    //    });
+    //}
 
 }
