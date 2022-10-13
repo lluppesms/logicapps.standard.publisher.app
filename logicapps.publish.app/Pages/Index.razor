@@ -1,0 +1,39 @@
+﻿@page "/"
+
+<PageTitle>LA Std Publisher</PageTitle>
+
+<h1>Welcome to Logic Apps Standard Publication Assistant</h1>
+<br />
+
+<h2>Request an Update:</h2>
+<input type="button" value="Start Pipeline" class="btn btn-primary form-control" style="width: 250px !important;" />
+
+<br />
+<br />
+&nbsp;
+
+
+<h2>Approve Latest Update:</h2>
+<input type="button" value="Approve Pull Request" class="btn btn-primary form-control" style="width: 250px !important;" />
+
+
+@code 
+{
+    [Inject] AppSettings settings { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // --> this always seems to fire twice for Server apps, so move logic to OnAfterRender
+        await base.OnInitializedAsync().ConfigureAwait(true);
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // --> this also seems to fire twice for Server apps, but there is a flag, so only do this once...
+        await Task.FromResult(true);
+        if (firstRender)
+        {
+          StateHasChanged();
+        }
+    }
+
+}

@@ -1,0 +1,107 @@
+# ----------------------------------------------------------------------------------------------------
+# Template to deploy Azure Resources for one environment
+# ----------------------------------------------------------------------------------------------------
+parameters: 
+  variableGroupName: 'myVariableGroup'
+  environmentName:  'DEV'
+  webAppName: ''
+
+# ----------------------------------------------------------------------------------------------------
+jobs:
+- deployment: Create${{ parameters.environmentName }}Infra
+  displayName: Initialize ${{ parameters.environmentName }} Create Infra
+  environment: ${{ parameters.environmentName }}
+
+- job: Create${{ parameters.environmentName }}InfraJob
+  displayName: Create ${{ parameters.environmentName }} Infrastructure
+  variables:
+    - group: ${{ parameters.variableGroupName }}
+    - name: environmentNameUpper
+      value: ${{ upper(parameters.environmentName) }}
+    - name: environmentNameLower
+      value: ${{ lower(parameters.environmentName) }}
+    - name: webAppName
+      value: ${{ parameters.webAppName }}
+    - name: resourceGroupSuffixBase
+      value: '_${{ lower(parameters.environmentName) }}'
+    - name: resourceGroupSuffix
+      value: ${{ replace(variables.resourceGroupSuffixBase, '_prod', '') }}
+
+  steps:
+  - bash: |
+      originalResourceGroupName=$(echo "rg_$(appPrefix)_$(environmentNameLower)" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+      echo "originalResourceGroupName=$originalResourceGroupName"
+      echo "##vso[task.setvariable variable=originalResourceGroupName]$originalResourceGroupName"
+
+      resourceGroupName=$(echo "rg_$(appPrefix)$(resourceGroupSuffix)" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+      echo "resourceGroupName=$resourceGroupName"
+      echo "##vso[task.setvariable variable=resourceGroupName]$resourceGroupName"
+      
+      keyVaultName=$(echo "$(appPrefix)$(appPrefix)value$(environmentCode)$(appSuffix)" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+      echo "keyVaultName=$keyVaultName"
+      echo "##vso[task.setvariable variable=keyVaultName]$keyVaultName"
+
+      runDateTime=$(echo $(date '+%Y%m%d-%H%M%S'))
+      echo "##vso[task.setvariable variable=runDateTime]$runDateTime"
+      echo "runDateTime=$runDateTime"
+    displayName: 'Create Variables'
+
+  - bash: |
+      echo "environmentNameUpper=$(environmentNameUpper)"
+      echo "environmentNameLower=$(environmentNameLower)"
+      echo "resourceGroupSuffixBase=$(resourceGroupSuffixBase)"
+      echo "resourceGroupSuffix=$(resourceGroupSuffix)"
+      echo "resourceGroupName=$(resourceGroupName)"
+      echo "keyVaultName=$(keyVaultName)"      
+      echo "originalResourceGroupName=$(originalResourceGroupName)"
+      echo "serviceConnectionName=$(serviceConnectionName)"
+      echo "subscriptionId=$(subscriptionId)"
+      echo "location=$(location)"
+      echo "orgPrefix=$(orgPrefix)"
+      echo "appPrefix=$(appPrefix)"
+      echo "appSuffix=$(appSuffix)"
+      echo "webAppName=$(webAppName)"
+      echo "storageSku=$(storageSku)"
+      echo "keyVaultOwnerUserId1=$(keyVaultOwnerUserId1)"
+      echo "runDateTime=$(runDateTime)"
+      echo "bicepDirectory=$(bicepDirectory)"
+      echo "bicepFileName=$(bicepFileName)"
+    displayName: 'Display Variables'
+    continueOnError: true
+
+  - task: AzureCLI@2
+    displayName: 'Create Resource Group'
+    inputs:
+      azureSubscription: $(serviceConnectionName)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az group create --name $(resourceGroupName) --location $(location) --tags LastDeployed=$(runDateTime) Organization=$(orgPrefix) Application=$(appPrefix) Environment=$(environmentNameUpper)
+
+  # Login is needed if you are pulling Bicep files from an Azure Container Registry
+  # -script: az login --service-principal -u $(principalId) -p $(clientSecret) --tenant $(tenantId)
+  #   displayName: 'az login'
+
+  # - script: az bicep build --file $(bicepDirectory)$(bicepFileName) --outfile $(bicepDirectory)compiled.json
+  #   displayName: 'Compile Bicep file'
+
+  - task: AzureResourceManagerTemplateDeployment@3
+    displayName: 'Publish Bicep Resources'
+    inputs:
+      csmFile: $(bicepDirectory)$(bicepFileName)
+      overrideParameters: >
+        -environmentCode $(environmentNameLower) 
+        -location $(location) 
+        -orgPrefix $(orgPrefix) 
+        -appPrefix $(appPrefix) 
+        -appSuffix $(appSuffix) 
+        -webAppName $(webAppName)
+        -storageSku $(storageSku) 
+        -existingKeyVaultName $(keyVaultName) 
+        -runDateTime $(runDateTime)
+      deploymentScope: 'Resource Group'
+      azureResourceManagerConnection: $(serviceConnectionName)
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: '$(resourceGroupName)'
+      location: '$(location)'
+      templateLocation: 'Linked artifact'
+      deploymentMode: 'Incremental'

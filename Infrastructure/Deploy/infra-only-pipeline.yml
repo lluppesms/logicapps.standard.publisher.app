@@ -1,0 +1,29 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy Azure Resources Only
+# See readme file for info about variable group "BlazorServerDemo"
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+
+trigger:
+  - none
+  # batch: true
+  # branches:
+  #   include:
+  #   - main
+  # paths:
+  #   include: 
+  #     - '**/*.yml'
+  #     - '**/*.bicep'
+  #   exclude:
+  #     - '**/*.*'
+
+pool:
+  vmImage: 'windows-latest'
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- template: pipes/infra-only-pipeline-template.yml
+  parameters:
+    variableGroupName: 'LASPublishDemo'
+    webAppName: 'publish'
+    environments: ['DEMO']
